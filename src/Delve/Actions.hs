@@ -7,14 +7,10 @@ module Delve.Actions where
 
 import Brick.Widgets.Core
 import Brick.Types
-import Brick.Widgets.List
+import Brick.Widgets.List hiding (reverse)
 import qualified Data.Vector as V
-import Data.Foldable
--- import Data.List.NonEmpty
--- import Data.Functor.Foldable
 import Data.Functor.Compose
 import Control.Comonad.Cofree as CF
-import Data.List
 import qualified System.Directory.Tree as FT
 
 pattern UnC :: forall (f :: * -> *) (g :: * -> *) a.
@@ -22,61 +18,49 @@ pattern UnC :: forall (f :: * -> *) (g :: * -> *) a.
 pattern UnC x <- _ :< Compose x
 {-# COMPLETE UnC #-}
 
-data FileItem = Dir FilePath [FileItem] | File FilePath | Failed String
-  deriving (Functor, Eq)
+data FileItem = Dir FilePath | File FilePath | Failed FilePath String
+  deriving (Eq, Show)
 
--- data FileZipper = FZ 
---   { parent :: [([FileItem], [FileItem])]
---   , current :: [FileItem]
---   }
+type FileTree = Cofree (GenericList String V.Vector) FileItem
 
-data WidgetZipper = WZ
-  { parent :: [(Int, List String FileItem)]
-  , current :: List String FileItem
+data FileZipper = FZ
+  { parent :: [(Int, FileTree)]
+  , context :: FileTree
   }
 
--- display :: FSLayer -> String
--- display (UnC (File fp)) = "File " <> fp
--- display (UnC (Failed err)) = "Failed " <> err
--- display (UnC (Dir fp r)) = "Dir " <> fp <> "\n" <> (intercalate "\n" . toList . fmap (("  " ++) . displayLayer) $ r)
-
--- displayLayer :: FSLayer -> String
--- displayLayer (UnC (File fp)) = "File " <> fp
--- displayLayer (UnC (Failed err)) = "Failed " <> err
--- displayLayer (UnC (Dir fp _)) = "Dir " <> fp <> " "
-
--- findSelectedLayer :: FSLayer -> List _
--- findSelectedLayer ()
-
-
-buildTree :: FilePath -> IO FSLayer
+buildTree :: FilePath -> IO FileZipper
 buildTree = fmap (convert . FT.dirTree) . crawlTree
 
 crawlTree :: FilePath -> IO (FT.AnchoredDirTree FilePath)
 crawlTree = FT.buildL
 
-convert :: FT.DirTree FilePath -> FSLayer
-convert = CF.unfold go
+convert :: FT.DirTree FilePath -> FileZipper
+convert = FZ [] . go
  where
-  go
-    :: (  FT.DirTree FilePath
-       -> (Bool, Compose (GenericList String V.Vector) FileItem (FT.DirTree FilePath))
-       )
-  go (FT.Failed { FT.name, FT.err }) = (False, mempty)
-  go (FT.File { FT.name }) = (False, mempty)
-  go (FT.Dir path contents  ) = (False,  Compose . fromList . fmap (fmap embed) $ (path, contents))
+  go :: FT.DirTree FilePath -> FileTree
+  go (FT.Failed { FT.name, FT.err }) = (Failed name (show err) :< list name mempty 1)
+  go (FT.File { FT.name, FT.file }) = (File file :< list name mempty 1)
+  go (FT.Dir path contents  ) = (Dir path :< list path (V.fromList . fmap go $ contents) 1)
 
-embed :: FT.DirTree FilePath -> FileItem FilePath
-embed = undefined
+renderFileZipper :: FileZipper -> Widget String
+renderFileZipper (FZ parents (_ :< lst)) = hBox (renderParent <$> reverse parents) <+> renderList (const renderFileItem) True lst
 
-fromList :: (String, [r]) ->  List String (r)
-fromList (p, ls) = list p (V.fromList ls) 1
+renderParent :: (Int, FileTree) -> Widget String
+renderParent (_, _ :< ls) = 
+  let w = renderList (const renderFileItem) True ls
+   in hLimit 20 w
 
-renderFSLayer :: FSLayer -> Widget String
-renderFSLayer (UnC (Dir _ xs)) = renderList (const renderSingle) True xs 
-renderFSLayer f = renderSingle f
+renderFileItem :: FileTree -> Widget String
+renderFileItem (File fp :< _) = str fp
+renderFileItem (Failed path err :< _) = str ("! " <> path <> ": " <> err)
+renderFileItem (Dir p :< _) = str (p <> "/")
 
-renderSingle :: FSLayer -> Widget String
-renderSingle (UnC (File fp)) = str fp
-renderSingle (UnC (Failed err)) = str ("! " <> err)
-renderSingle (UnC (Dir p _)) = str (p <> "/")
+ascendDir :: FileZipper -> FileZipper
+ascendDir fz@(FZ [] _) = fz
+ascendDir (FZ ((i, f :< pList):ps) current) = FZ ps (f :< pList)
+
+descendDir :: FileZipper -> FileZipper
+descendDir fz@(FZ parents (f:< children)) =
+  case listSelectedElement children of
+    Nothing -> fz
+    Just (i, nextChildren) -> FZ ((i, f:<children):parents) nextChildren

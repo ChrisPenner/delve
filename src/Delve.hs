@@ -10,10 +10,11 @@ import           Graphics.Vty.Attributes
 import Data.List.NonEmpty
 import Control.Monad.IO.Class
 import Delve.Actions
+import Control.Comonad.Cofree
 
 type ResourceName = String
 type CustomEvent = ()
-type AppState = FSLayer
+type AppState = FileZipper
 
 app :: App AppState CustomEvent ResourceName
 app = App
@@ -30,7 +31,7 @@ attrs = attrMap defAttr [ (fileBrowserSelectedAttr, red `on` black)
                         ]
 
 drawUI :: AppState -> [Widget ResourceName]
-drawUI fs = [renderFSLayer fs]
+drawUI fs = [renderFileZipper fs]
 
 chooseCursor
   :: AppState
@@ -47,13 +48,11 @@ handleEvent
   -> BrickEvent ResourceName CustomEvent
   -> EventM ResourceName (Next AppState)
 handleEvent s (VtyKey 'c' [MCtrl]) = halt s
-handleEvent s (VtyEvent (EvKey KEnter _)) = do
-  undefined
-  -- case fileBrowserCursor fb of
-  --   Nothing -> continue s
-  --   Just (fileInfoFilename -> "..") -> do
-  --     continue (fromList rest)
-  --   Just (fileInfoFilePath -> fp) -> do
-  --     newFb <- liftIO $ newFileBrowser (const True) (Prelude.length s) (Just fp)
-  --     continue (newFb :| fb : rest)
-handleEvent s _ = continue s
+handleEvent s (VtyKey 'q' []) = halt s
+handleEvent fz (VtyKey 'l' []) = continue $ descendDir fz
+handleEvent fz (VtyEvent (EvKey KEnter _)) = continue $ descendDir fz
+handleEvent fz (VtyKey 'h' []) = continue $ ascendDir fz
+
+handleEvent fz@(FZ _ (x:<lst)) (VtyEvent e) = do
+  lst' <- handleListEventVi (const pure) e  lst
+  continue $ fz{context=(x:<lst')}
