@@ -1,4 +1,5 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE ViewPatterns #-}
 module Delve.Render where
 
 import Delve.Types
@@ -17,11 +18,18 @@ import qualified Data.Sequence as S
 cacheKey :: FileContext -> String
 cacheKey = path
 
+renderHeader :: FileTree -> Widget String
+renderHeader ((path -> p) :< _) = str p <=> hBorder
+
 renderFileZipper :: FileZipper -> Widget String
-renderFileZipper (FZ S.Empty node) = renderNode node
-renderFileZipper (FZ parents@(_ S.:|> (p :< _)) (_ :< lst)) =
-  cached (cacheKey p) (hBox . toList $ (renderParent <$> S.drop ind parents))
-    <+> renderList (const (renderFileItem . extract)) True lst
+renderFileZipper (FZ ps node) =
+  renderHeader node <=> (renderParents ps <+> renderNode node)
+
+renderParents :: S.Seq FileTree -> Widget String
+renderParents S.Empty                    = emptyWidget
+renderParents parents@(_ S.:|> (p :< _)) = cached
+  (cacheKey p)
+  (hBox . toList $ (renderParent <$> S.drop ind parents))
  where
   len = S.length parents
   ind = max 0 (len - 2)

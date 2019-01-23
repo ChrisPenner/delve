@@ -1,4 +1,5 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE OverloadedLists #-}
 module Delve.Types where
 
@@ -27,17 +28,27 @@ data FileZipper = FZ
   , context :: FileTree
   }
 
+buildParent :: FilePath -> FileTree -> IO FileZipper
+buildParent p child = do
+  FZ parents (c :< ls) <- buildTree (takeDirectory p)
+  let newChildren = fmap (replace p child) ls
+  return $ FZ parents (c :< newChildren)
+ where
+  replace pth fc@((path -> pth') :< _) new | pth == pth' = new
+                                           | otherwise   = fc
+
+
 buildTree :: FilePath -> IO FileZipper
 buildTree currentDir = do
-  (root FT.:/ tree) <- crawlTree currentDir
-  absRoot           <- makeAbsolute root
-  return $ convert absRoot tree
+  absRoot        <- makeAbsolute (normalise currentDir)
+  (_ FT.:/ tree) <- crawlTree absRoot
+  return $ convert (takeDirectory absRoot) tree
 
 crawlTree :: FilePath -> IO (FT.AnchoredDirTree FilePath)
-crawlTree = FT.build
+crawlTree = FT.buildL
 
 convert :: FilePath -> FT.DirTree FilePath -> FileZipper
-convert root tree = FZ [] . go root $ tree
+convert root tree = FZ [] . go (normalise root) $ tree
  where
   go :: FilePath -> FT.DirTree FilePath -> FileTree
   go root' (FT.Failed { FT.name, FT.err }) =

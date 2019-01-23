@@ -12,9 +12,11 @@ import Control.Comonad.Cofree as CF
 import qualified Data.Sequence as S
 import Delve.Types
 import Delve.Render
+import Control.Monad.IO.Class
 
 ascendDir :: FileZipper -> EventM String FileZipper
-ascendDir fz@(FZ S.Empty _) = pure fz
+ascendDir (FZ S.Empty tree@((path -> p):<_)) = do
+  liftIO $ buildParent p tree
 ascendDir (FZ (ps S.:|> (f :< pList)) current) = do
   invalidateCacheEntry (cacheKey f)
   return $ FZ ps (f :< listModify (const current) pList)
