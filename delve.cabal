@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2cedd94699d66954a2a7e7bb2be167579cbc326c1873965f5122b1c50a02ea9b
+-- hash: 3e88a963e99ad59eaf6cfd3bb8d28775ec4f432c962a3b2acb5c3edd28d94ab1
 
 name:           delve
 version:        0.0.0
@@ -27,9 +27,10 @@ source-repository head
 
 library
   exposed-modules:
-      Brick.FileTree.Actions
-      Brick.FileTree.Render
-      Brick.FileTree.Types
+      Brick.FileTree
+      Brick.FileTree.Internal.Actions
+      Brick.FileTree.Internal.Render
+      Brick.FileTree.Internal.Types
       Delve
   other-modules:
       Paths_delve

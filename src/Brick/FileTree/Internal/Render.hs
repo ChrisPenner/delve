@@ -1,8 +1,8 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE ViewPatterns #-}
-module Brick.FileTree.Render where
+module Brick.FileTree.Internal.Render where
 
-import Brick.FileTree.Types
+import Brick.FileTree.Internal.Types
 
 import Data.Foldable
 import Brick.Widgets.Core
@@ -13,16 +13,14 @@ import Control.Comonad.Cofree as CF
 import Control.Comonad
 import qualified Data.Sequence as S
 
-
-
 cacheKey :: FileContext -> String
 cacheKey = path
 
 renderHeader :: SubTree -> Widget String
 renderHeader ((path -> p) :< _) = str p <=> hBorder
 
-renderFileZipper :: FileTree -> Widget String
-renderFileZipper (FZ ps node) =
+renderFileTree :: FileTree -> Widget String
+renderFileTree (FZ ps node) =
   renderHeader node <=> (renderParents ps <+> renderNode node)
 
 renderParents :: S.Seq SubTree -> Widget String

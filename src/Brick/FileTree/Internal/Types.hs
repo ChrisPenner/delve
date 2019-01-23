@@ -1,7 +1,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE OverloadedLists #-}
-module Brick.FileTree.Types where
+module Brick.FileTree.Internal.Types where
 
 import Brick.Widgets.List
 import qualified Data.Vector as V

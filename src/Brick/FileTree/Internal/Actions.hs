@@ -3,7 +3,7 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE OverloadedLists #-}
-module Brick.FileTree.Actions where
+module Brick.FileTree.Internal.Actions where
 
 import qualified Graphics.Vty.Input as V
 import Brick.Main
@@ -11,8 +11,8 @@ import Brick.Types
 import Brick.Widgets.List
 import Control.Comonad.Cofree as CF
 import qualified Data.Sequence as S
-import Brick.FileTree.Types
-import Brick.FileTree.Render
+import Brick.FileTree.Internal.Types
+import Brick.FileTree.Internal.Render
 import Control.Monad.IO.Class
 
 overCurrentList :: (List String SubTree -> EventM String (List String SubTree)) -> FileTree -> EventM String FileTree
@@ -28,6 +28,19 @@ moveDown = pressKey V.KDown
 
 moveUp :: FileTree -> EventM String FileTree
 moveUp = pressKey V.KUp
+
+
+pageDown :: FileTree -> EventM String FileTree
+pageDown = pressKey V.KPageDown
+
+pageUp :: FileTree -> EventM String FileTree
+pageUp = pressKey V.KPageDown
+
+moveToTop :: FileTree -> EventM String FileTree
+moveToTop = pressKey V.KHome
+
+moveToBottom :: FileTree -> EventM String FileTree
+moveToBottom = pressKey V.KEnd
 
 ascendDir :: FileTree -> EventM String FileTree
 ascendDir (FZ S.Empty tree@((path -> p):<_)) = do
@@ -50,3 +63,7 @@ getSelectedFilePath (FZ _ (_:< children)) =
     Nothing -> Nothing
     Just (_, FC{kind=Error} :< _) -> Nothing
     Just (_, fc:< _) -> Just (path fc)
+
+
+getCurrentDir :: FileTree -> FilePath
+getCurrentDir (FZ _ ((path -> p):< _)) = p

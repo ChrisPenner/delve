@@ -6,10 +6,7 @@ import           Brick.Widgets.FileBrowser
 import           Brick.Widgets.List
 import           Graphics.Vty.Input.Events
 import           Graphics.Vty.Attributes
-import Brick.FileTree.Actions
-import Brick.FileTree.Types
-import Brick.FileTree.Render
-import Control.Comonad.Cofree
+import Brick.FileTree
 import System.Posix.Process
 import Control.Monad.IO.Class
 import Data.Maybe
@@ -33,7 +30,7 @@ attrs = attrMap defAttr [ (fileBrowserSelectedAttr, red `on` black)
                         ]
 
 drawUI :: AppState -> [Widget ResourceName]
-drawUI fs = [renderFileZipper fs]
+drawUI fs = [renderFileTree fs]
 
 chooseCursor
   :: AppState
