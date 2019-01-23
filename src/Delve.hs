@@ -7,6 +7,8 @@ import           Brick.Widgets.List
 import           Graphics.Vty.Input.Events
 import           Graphics.Vty.Attributes
 import Delve.Actions
+import Delve.Types
+import Delve.Render
 import Control.Comonad.Cofree
 
 type ResourceName = String
@@ -46,9 +48,9 @@ handleEvent
   -> EventM ResourceName (Next AppState)
 handleEvent s (VtyKey 'c' [MCtrl]) = halt s
 handleEvent s (VtyKey 'q' []) = halt s
-handleEvent fz (VtyKey 'l' []) = continue $ descendDir fz
+handleEvent fz (VtyKey 'l' []) =  descendDir fz >>= continue
 handleEvent fz (VtyEvent (EvKey KEnter _)) = halt fz
-handleEvent fz (VtyKey 'h' []) = continue $ ascendDir fz
+handleEvent fz (VtyKey 'h' []) =  ascendDir fz >>= continue
 handleEvent fz@(FZ _ (x:<lst)) (VtyEvent e) = do
   lst' <- handleListEventVi (const pure) e  lst
   continue $ fz{context=x:<lst'}

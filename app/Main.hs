@@ -5,11 +5,11 @@ where
 
 import           Brick
 import           Brick.BChan
-import           Control.Monad
-import Data.Maybe
+import           Data.Maybe
 
 import           Delve
-import Delve.Actions
+import           Delve.Types
+import           Delve.Actions
 import           Graphics.Vty
 
 main :: IO ()

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d08cc9fd8bfcc9759fb9809e8c2190948c2b38e7e53d987e4f2e3b8900128178
+-- hash: 8739124b2dd6a1a5286a58de457d0d2fe65bde19834320d803be36abdcd4f258
 
 name:           delve
 version:        0.0.0
@@ -30,6 +30,8 @@ library
       Delve
   other-modules:
       Delve.Actions
+      Delve.Render
+      Delve.Types
       Paths_delve
   hs-source-dirs:
       src
@@ -39,7 +41,9 @@ library
     , brick ==0.46
     , comonad
     , containers
+    , directory
     , directory-tree
+    , filepath
     , free
     , mtl
     , recursion-schemes
@@ -60,7 +64,9 @@ executable delve
     , comonad
     , containers
     , delve
+    , directory
     , directory-tree
+    , filepath
     , free
     , mtl
     , recursion-schemes
@@ -82,7 +88,9 @@ test-suite delve-test
     , comonad
     , containers
     , delve
+    , directory
     , directory-tree
+    , filepath
     , free
     , mtl
     , recursion-schemes

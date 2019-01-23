@@ -30,6 +30,8 @@ dependencies:
 - comonad
 - vector
 - containers
+- directory
+- filepath
 
 
 library:
