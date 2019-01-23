@@ -47,8 +47,7 @@ handleEvent
 handleEvent s (VtyKey 'c' [MCtrl]) = halt s
 handleEvent s (VtyKey 'q' []) = halt s
 handleEvent fz (VtyKey 'l' []) = continue $ descendDir fz
-handleEvent fz (VtyEvent (EvKey KEnter _)) = continue $ descendDir fz
-handleEvent fz (VtyKey ' ' []) = halt fz
+handleEvent fz (VtyEvent (EvKey KEnter _)) = halt fz
 handleEvent fz (VtyKey 'h' []) = continue $ ascendDir fz
 handleEvent fz@(FZ _ (x:<lst)) (VtyEvent e) = do
   lst' <- handleListEventVi (const pure) e  lst
