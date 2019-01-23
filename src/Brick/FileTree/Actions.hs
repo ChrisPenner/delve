@@ -3,25 +3,25 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE OverloadedLists #-}
-module Delve.Actions where
+module Brick.FileTree.Actions where
 
 import Brick.Main
 import Brick.Types
 import Brick.Widgets.List
 import Control.Comonad.Cofree as CF
 import qualified Data.Sequence as S
-import Delve.Types
-import Delve.Render
+import Brick.FileTree.Types
+import Brick.FileTree.Render
 import Control.Monad.IO.Class
 
-ascendDir :: FileZipper -> EventM String FileZipper
+ascendDir :: FileTree -> EventM String FileTree
 ascendDir (FZ S.Empty tree@((path -> p):<_)) = do
   liftIO $ buildParent p tree
 ascendDir (FZ (ps S.:|> (f :< pList)) current) = do
   invalidateCacheEntry (cacheKey f)
   return $ FZ ps (f :< listModify (const current) pList)
 
-descendDir :: FileZipper -> EventM String FileZipper
+descendDir :: FileTree -> EventM String FileTree
 descendDir fz@(FZ parents (f:< children)) = do
   invalidateCacheEntry (cacheKey f)
   return $ case listSelectedElement children of
@@ -29,7 +29,7 @@ descendDir fz@(FZ parents (f:< children)) = do
     Just (_, nextChildren@(FC{kind=Dir} :< _)) -> FZ (parents S.|> (f:<children)) nextChildren
     Just _ -> fz
 
-select :: FileZipper -> Maybe FilePath
+select :: FileTree -> Maybe FilePath
 select (FZ _ (_:< children)) = 
   case listSelectedElement children of
     Nothing -> Nothing

@@ -1,8 +1,8 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE ViewPatterns #-}
-module Delve.Render where
+module Brick.FileTree.Render where
 
-import Delve.Types
+import Brick.FileTree.Types
 
 import Data.Foldable
 import Brick.Widgets.Core
@@ -18,14 +18,14 @@ import qualified Data.Sequence as S
 cacheKey :: FileContext -> String
 cacheKey = path
 
-renderHeader :: FileTree -> Widget String
+renderHeader :: SubTree -> Widget String
 renderHeader ((path -> p) :< _) = str p <=> hBorder
 
-renderFileZipper :: FileZipper -> Widget String
+renderFileZipper :: FileTree -> Widget String
 renderFileZipper (FZ ps node) =
   renderHeader node <=> (renderParents ps <+> renderNode node)
 
-renderParents :: S.Seq FileTree -> Widget String
+renderParents :: S.Seq SubTree -> Widget String
 renderParents S.Empty                    = emptyWidget
 renderParents parents@(_ S.:|> (p :< _)) = cached
   (cacheKey p)
@@ -34,10 +34,10 @@ renderParents parents@(_ S.:|> (p :< _)) = cached
   len = S.length parents
   ind = max 0 (len - 2)
 
-renderNode :: FileTree -> Widget String
+renderNode :: SubTree -> Widget String
 renderNode (_ :< ls) = renderList (const (renderFileItem . extract)) True ls
 
-renderParent :: FileTree -> Widget String
+renderParent :: SubTree -> Widget String
 renderParent = (<+> vBorder) . hLimit 20 . renderNode
 
 renderFileItem :: FileContext -> Widget String

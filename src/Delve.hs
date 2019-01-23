@@ -6,9 +6,9 @@ import           Brick.Widgets.FileBrowser
 import           Brick.Widgets.List
 import           Graphics.Vty.Input.Events
 import           Graphics.Vty.Attributes
-import Delve.Actions
-import Delve.Types
-import Delve.Render
+import Brick.FileTree.Actions
+import Brick.FileTree.Types
+import Brick.FileTree.Render
 import Control.Comonad.Cofree
 import System.Posix.Process
 import Control.Monad.IO.Class
@@ -16,7 +16,7 @@ import Data.Maybe
 
 type ResourceName = String
 type CustomEvent = ()
-type AppState = FileZipper
+type AppState = FileTree
 
 app :: App AppState CustomEvent ResourceName
 app = App

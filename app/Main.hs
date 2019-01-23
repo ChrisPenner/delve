@@ -8,14 +8,13 @@ import           Brick.BChan
 import           Data.Maybe
 
 import           Delve
-import           Delve.Types
-import           Delve.Actions
+import           Brick.FileTree
 import           Graphics.Vty
 
 main :: IO ()
 main = do
   let loadVty = standardIOConfig >>= mkVty
   bChan <- newBChan 10
-  fb    <- buildTree "."
+  fb    <- newFileTree "."
   res   <- customMain loadVty (Just bChan) app fb
   putStrLn $ fromMaybe "" $ select res

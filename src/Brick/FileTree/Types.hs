@@ -1,7 +1,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE OverloadedLists #-}
-module Delve.Types where
+module Brick.FileTree.Types where
 
 import Brick.Widgets.List
 import qualified Data.Vector as V
@@ -21,33 +21,32 @@ data FileContext =
     , kind :: FileKind
     }
 
-type FileTree = Cofree (GenericList String V.Vector) FileContext
+type SubTree = Cofree (GenericList String V.Vector) FileContext
 
-data FileZipper = FZ
-  { parent :: S.Seq FileTree
-  , context :: FileTree
+data FileTree = FZ
+  { parent :: S.Seq SubTree
+  , context :: SubTree
   }
 
-buildParent :: FilePath -> FileTree -> IO FileZipper
+buildParent :: FilePath -> SubTree -> IO FileTree
 buildParent p child = do
-  FZ parents (c :< ls) <- buildTree (takeDirectory p)
+  FZ parents (c :< ls) <- newFileTree (takeDirectory p)
   let newChildren = fmap (replace p child) ls
   return $ FZ parents (c :< newChildren)
  where
   replace pth fc@((path -> pth') :< _) new | pth == pth' = new
                                            | otherwise   = fc
 
-
-buildTree :: FilePath -> IO FileZipper
-buildTree currentDir = do
+newFileTree :: FilePath -> IO FileTree
+newFileTree currentDir = do
   absRoot        <- makeAbsolute (normalise currentDir)
   (_ FT.:/ tree) <- FT.buildL absRoot
   return $ convert (takeDirectory absRoot) tree
 
-convert :: FilePath -> FT.DirTree FilePath -> FileZipper
+convert :: FilePath -> FT.DirTree FilePath -> FileTree
 convert root tree = FZ [] . go (normalise root) $ tree
  where
-  go :: FilePath -> FT.DirTree FilePath -> FileTree
+  go :: FilePath -> FT.DirTree FilePath -> SubTree
   go root' (FT.Failed { FT.name, FT.err }) =
     FC
         { name     = show err
