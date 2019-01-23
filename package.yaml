@@ -21,8 +21,14 @@ ghc-options:
 - -Wpartial-fields
 dependencies:
 - base >=4.11.1.0
-- brick
+- brick == 0.46
 - vty
+- mtl
+- directory-tree
+- recursion-schemes
+- free
+- comonad
+- vector
 
 
 library:
@@ -42,6 +48,7 @@ executables:
     dependencies:
       - delve
       - brick
+      - brick == 0.46
       - vty
 
 
