@@ -32,12 +32,11 @@ dependencies:
 - containers
 - directory
 - filepath
+- unix
 
 
 library:
   source-dirs: src
-  exposed-modules:
-  - Delve
 
 executables:
   delve:

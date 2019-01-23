@@ -41,11 +41,8 @@ buildParent p child = do
 buildTree :: FilePath -> IO FileZipper
 buildTree currentDir = do
   absRoot        <- makeAbsolute (normalise currentDir)
-  (_ FT.:/ tree) <- crawlTree absRoot
+  (_ FT.:/ tree) <- FT.buildL absRoot
   return $ convert (takeDirectory absRoot) tree
-
-crawlTree :: FilePath -> IO (FT.AnchoredDirTree FilePath)
-crawlTree = FT.buildL
 
 convert :: FilePath -> FT.DirTree FilePath -> FileZipper
 convert root tree = FZ [] . go (normalise root) $ tree

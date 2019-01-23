@@ -10,6 +10,9 @@ import Delve.Actions
 import Delve.Types
 import Delve.Render
 import Control.Comonad.Cofree
+import System.Posix.Process
+import Control.Monad.IO.Class
+import Data.Maybe
 
 type ResourceName = String
 type CustomEvent = ()
@@ -49,7 +52,10 @@ handleEvent
 handleEvent s (VtyKey 'c' [MCtrl]) = halt s
 handleEvent s (VtyKey 'q' []) = halt s
 handleEvent fz (VtyKey 'l' []) =  descendDir fz >>= continue
-handleEvent fz (VtyEvent (EvKey KEnter _)) = halt fz
+-- handleEvent fz (VtyEvent (EvKey KEnter _)) = halt fz
+handleEvent fz (VtyEvent (EvKey KEnter _)) = do
+  let f = select fz
+  liftIO $ executeFile "vim" True (maybeToList f) Nothing
 handleEvent fz (VtyKey 'h' []) =  ascendDir fz >>= continue
 handleEvent fz@(FZ _ (x:<lst)) (VtyEvent e) = do
   lst' <- handleListEventVi (const pure) e  lst
