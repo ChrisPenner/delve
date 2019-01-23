@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e442686bf962ed03227acdd495841fb357a328a7d9d24f66743407d401783cad
+-- hash: d08cc9fd8bfcc9759fb9809e8c2190948c2b38e7e53d987e4f2e3b8900128178
 
 name:           delve
 version:        0.0.0
@@ -38,6 +38,7 @@ library
       base >=4.11.1.0
     , brick ==0.46
     , comonad
+    , containers
     , directory-tree
     , free
     , mtl
@@ -57,6 +58,7 @@ executable delve
       base >=4.11.1.0
     , brick ==0.46
     , comonad
+    , containers
     , delve
     , directory-tree
     , free
@@ -78,6 +80,7 @@ test-suite delve-test
       base >=4.11.1.0
     , brick ==0.46
     , comonad
+    , containers
     , delve
     , directory-tree
     , free

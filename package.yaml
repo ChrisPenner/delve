@@ -29,6 +29,7 @@ dependencies:
 - free
 - comonad
 - vector
+- containers
 
 
 library:

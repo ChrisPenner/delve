@@ -1,5 +1,4 @@
 {-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE ViewPatterns #-}
 module Delve (app) where
 
 import           Brick
@@ -7,8 +6,6 @@ import           Brick.Widgets.FileBrowser
 import           Brick.Widgets.List
 import           Graphics.Vty.Input.Events
 import           Graphics.Vty.Attributes
-import Data.List.NonEmpty
-import Control.Monad.IO.Class
 import Delve.Actions
 import Control.Comonad.Cofree
 
@@ -51,8 +48,9 @@ handleEvent s (VtyKey 'c' [MCtrl]) = halt s
 handleEvent s (VtyKey 'q' []) = halt s
 handleEvent fz (VtyKey 'l' []) = continue $ descendDir fz
 handleEvent fz (VtyEvent (EvKey KEnter _)) = continue $ descendDir fz
+handleEvent fz (VtyKey ' ' []) = halt fz
 handleEvent fz (VtyKey 'h' []) = continue $ ascendDir fz
-
 handleEvent fz@(FZ _ (x:<lst)) (VtyEvent e) = do
   lst' <- handleListEventVi (const pure) e  lst
-  continue $ fz{context=(x:<lst')}
+  continue $ fz{context=x:<lst'}
+handleEvent fz _ = continue fz
