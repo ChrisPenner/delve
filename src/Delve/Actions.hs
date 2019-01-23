@@ -6,6 +6,7 @@
 module Delve.Actions where
 
 import Brick.Widgets.Core
+import Brick.Widgets.Border
 import Brick.Types
 import Brick.Widgets.List hiding (reverse)
 import qualified Data.Vector as V
@@ -24,7 +25,7 @@ data FileItem = Dir FilePath | File FilePath | Failed FilePath String
 type FileTree = Cofree (GenericList String V.Vector) FileItem
 
 data FileZipper = FZ
-  { parent :: [(Int, FileTree)]
+  { parent :: [FileTree]
   , context :: FileTree
   }
 
@@ -38,17 +39,17 @@ convert :: FT.DirTree FilePath -> FileZipper
 convert = FZ [] . go
  where
   go :: FT.DirTree FilePath -> FileTree
-  go (FT.Failed { FT.name, FT.err }) = (Failed name (show err) :< list name mempty 1)
-  go (FT.File { FT.name, FT.file }) = (File file :< list name mempty 1)
-  go (FT.Dir path contents  ) = (Dir path :< list path (V.fromList . fmap go $ contents) 1)
+  go (FT.Failed { FT.name, FT.err }) = Failed name (show err) :< list name mempty 1
+  go (FT.File { FT.name, FT.file }) = File name :< list name mempty 1
+  go (FT.Dir path contents  ) = Dir path :< list path (V.fromList . fmap go $ contents) 1
 
 renderFileZipper :: FileZipper -> Widget String
 renderFileZipper (FZ parents (_ :< lst)) = hBox (renderParent <$> reverse parents) <+> renderList (const renderFileItem) True lst
 
-renderParent :: (Int, FileTree) -> Widget String
-renderParent (_, _ :< ls) = 
+renderParent :: (FileTree) -> Widget String
+renderParent (_ :< ls) = 
   let w = renderList (const renderFileItem) True ls
-   in hLimit 20 w
+   in hLimit 20 w <+> vBorder
 
 renderFileItem :: FileTree -> Widget String
 renderFileItem (File fp :< _) = str fp
@@ -57,10 +58,11 @@ renderFileItem (Dir p :< _) = str (p <> "/")
 
 ascendDir :: FileZipper -> FileZipper
 ascendDir fz@(FZ [] _) = fz
-ascendDir (FZ ((i, f :< pList):ps) current) = FZ ps (f :< pList)
+ascendDir (FZ ((f :< pList):ps) current) = FZ ps (f :< listModify (const current) pList)
 
 descendDir :: FileZipper -> FileZipper
 descendDir fz@(FZ parents (f:< children)) =
   case listSelectedElement children of
     Nothing -> fz
-    Just (i, nextChildren) -> FZ ((i, f:<children):parents) nextChildren
+    Just (i, nextChildren@(Dir _ :< _)) -> FZ ((i, f:<children):parents) nextChildren
+    Just _ -> fz
