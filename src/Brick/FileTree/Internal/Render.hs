@@ -12,6 +12,7 @@ import Brick.Widgets.List
 import Control.Comonad.Cofree as CF
 import Control.Comonad
 import qualified Data.Sequence as S
+import Data.Bool
 
 cacheKey :: FileContext -> String
 cacheKey = path
@@ -33,13 +34,15 @@ renderParents parents@(_ S.:|> (p :< _)) = cached
   ind = max 0 (len - 2)
 
 renderNode :: SubTree -> Widget String
-renderNode (_ :< ls) = renderList (const (renderFileItem . extract)) True ls
+renderNode (_ :< ls) = renderList (const (renderFileContext . extract)) True ls
 
 renderParent :: SubTree -> Widget String
 renderParent = (<+> vBorder) . hLimit 20 . renderNode
 
-renderFileItem :: FileContext -> Widget String
-renderFileItem (FC { kind = File, name }) = str name
-renderFileItem (FC { kind = Error, name, path }) =
+renderFileContext :: FileContext -> Widget String
+renderFileContext (FC { kind = File, name, selected }) =
+  str $ (bool "" "* " selected) <> name
+renderFileContext (FC { kind = Error, name, path }) =
   str ("! " <> path <> ": " <> name)
-renderFileItem (FC { kind = Dir, name }) = str (name <> "/")
+renderFileContext (FC { kind = Dir, name, selected }) =
+  str $ (bool "" "* " selected) <> name <> "/"

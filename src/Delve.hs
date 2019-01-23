@@ -49,6 +49,7 @@ handleEvent
 handleEvent s (VtyKey 'c' [MCtrl]) = halt s
 handleEvent s (VtyKey 'q' []) = halt s
 handleEvent fz (VtyKey 'l' []) =  descendDir fz >>= continue
+handleEvent fz (VtyKey ' ' []) = continue $ toggleSelection fz
 handleEvent fz (VtyEvent (EvKey KEnter _)) = do
   let f = getSelectedFilePath fz
   liftIO $ executeFile "vim" True (maybeToList f) Nothing

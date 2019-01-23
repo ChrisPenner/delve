@@ -67,3 +67,8 @@ getSelectedFilePath (FZ _ (_:< children)) =
 
 getCurrentDir :: FileTree -> FilePath
 getCurrentDir (FZ _ ((path -> p):< _)) = p
+
+toggleSelection :: FileTree -> FileTree
+toggleSelection (FZ p (fc:<lst)) = FZ p (fc :< newList)
+  where
+    newList = listModify (\(c:<r) -> c{selected=not (selected c)} :< r) lst

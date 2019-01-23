@@ -1,6 +1,7 @@
 module Brick.FileTree
   ( FileTree
   , newFileTree
+  , toggleSelection
   , moveUp
   , moveDown
   , pageDown
