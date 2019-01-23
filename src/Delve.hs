@@ -52,12 +52,10 @@ handleEvent
 handleEvent s (VtyKey 'c' [MCtrl]) = halt s
 handleEvent s (VtyKey 'q' []) = halt s
 handleEvent fz (VtyKey 'l' []) =  descendDir fz >>= continue
--- handleEvent fz (VtyEvent (EvKey KEnter _)) = halt fz
 handleEvent fz (VtyEvent (EvKey KEnter _)) = do
-  let f = select fz
+  let f = getSelectedFilePath fz
   liftIO $ executeFile "vim" True (maybeToList f) Nothing
 handleEvent fz (VtyKey 'h' []) =  ascendDir fz >>= continue
-handleEvent fz@(FZ _ (x:<lst)) (VtyEvent e) = do
-  lst' <- handleListEventVi (const pure) e  lst
-  continue $ fz{context=x:<lst'}
+handleEvent fz (VtyKey 'j' []) = moveDown fz >>= continue
+handleEvent fz (VtyKey 'k' []) = moveUp fz >>= continue
 handleEvent fz _ = continue fz
