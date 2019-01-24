@@ -1,7 +1,17 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE OverloadedLists #-}
-module Brick.FileTree.Internal.Types where
+{-# LANGUAGE RecordWildCards #-}
+module Brick.FileTree.Internal.Types
+  ( FileKind(..)
+  , FileContext(..)
+  , Config(..)
+  , FileTree(..)
+  , SubTree
+  , buildParent
+  , newFileTree
+  , defaultConfig
+  ) where
 
 import Brick.Widgets.List
 import qualified Data.Vector as V
@@ -22,19 +32,28 @@ data FileContext =
     , kind :: FileKind
     }
 
+data Config =
+  Config
+    { showSelection :: Bool
+    }
+
+defaultConfig :: Config
+defaultConfig = Config {showSelection = True}
+
 type SubTree = Cofree (GenericList String V.Vector) FileContext
 
 data FileTree = FZ
   { parents :: S.Seq SubTree
   , selection :: S.Set FilePath
   , context :: SubTree
+  , config :: Config
   }
 
 buildParent :: FilePath -> SubTree -> IO FileTree
 buildParent p child = do
-  FZ parents s (c :< ls) <- newFileTree (takeDirectory p)
+  FZ { context = (c :< ls), ..} <- newFileTree (takeDirectory p)
   let newChildren = fmap (replace p child) ls
-  return $ FZ parents s (c :< newChildren)
+  return $ FZ {context = (c :< newChildren), ..}
  where
   replace pth fc@((path -> pth') :< _) new | pth == pth' = new
                                            | otherwise   = fc
@@ -46,7 +65,14 @@ newFileTree currentDir = do
   return $ convert (takeDirectory absRoot) tree
 
 convert :: FilePath -> FT.DirTree FilePath -> FileTree
-convert root tree = FZ [] mempty . go (normalise root) $ tree
+convert root tree =
+  let subTree = go (normalise root) $ tree
+  in  FZ
+        { parents   = []
+        , selection = mempty
+        , config    = defaultConfig
+        , context   = subTree
+        }
  where
   go :: FilePath -> FT.DirTree FilePath -> SubTree
   go root' (FT.Failed { FT.name, FT.err }) =

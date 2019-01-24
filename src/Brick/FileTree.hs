@@ -12,9 +12,15 @@ module Brick.FileTree
   , descendDir
   , getCurrentFilePath
   , getCurrentDir
+  , getFlagged
+  , toggleSelectionVisible
   , renderFileTree
   , renderSelection
-  , getFlagged
+  , selectedItemAttr
+  , titleAttr
+  , dirAttr
+  , fileAttr
+  , errorAttr
   )
 where
 

@@ -18,6 +18,7 @@ module Brick.FileTree.Internal.Actions
   , getCurrentDir
   , toggleSelection
   , getFlagged
+  , toggleSelectionVisible
   ) where
 
 import qualified Graphics.Vty.Input as V
@@ -86,8 +87,10 @@ getCurrentFilePath (FZ {context=unwrap -> children}) =
 getCurrentDir :: FileTree -> FilePath
 getCurrentDir (FZ { context=extract -> path -> p}) = p
 
-toggleSelection :: FileTree -> FileTree
-toggleSelection fz@(FZ {context=(fc:<lst), selection, ..}) = fromMaybe fz $ do
+toggleSelection :: FileTree -> EventM String FileTree
+toggleSelection fz@(FZ {context=(fc:<lst), selection, ..}) = do
+  invalidateCacheEntry selectionCacheKey
+  return .  fromMaybe fz $ do
     ((selectedContext@FC{selected=isSelected, path}) :< rest) <- snd <$> listSelectedElement lst
     let newSelection = if isSelected then S.delete path selection
                                      else S.insert path selection
@@ -96,3 +99,6 @@ toggleSelection fz@(FZ {context=(fc:<lst), selection, ..}) = fromMaybe fz $ do
 
 getFlagged :: FileTree -> [FilePath]
 getFlagged = toList . selection
+
+toggleSelectionVisible :: FileTree -> FileTree
+toggleSelectionVisible fz@(FZ{config})  = fz{config=config{showSelection= not $ showSelection config}}

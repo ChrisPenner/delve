@@ -7,6 +7,7 @@ import           Brick.Widgets.List
 import           Graphics.Vty.Input.Events
 import           Graphics.Vty.Attributes
 import Brick.FileTree
+import Brick.Widgets.Border
 import System.Posix.Process
 import Control.Monad.IO.Class
 import Data.Maybe
@@ -25,12 +26,15 @@ app = App
   }
 
 attrs :: AttrMap
-attrs = attrMap defAttr [ (fileBrowserSelectedAttr, red `on` black)
+attrs = attrMap defAttr [ (dirAttr, cyan `on` black)
                         , (listSelectedFocusedAttr, black `on` white)
+                        , (borderAttr, green `on` black)
+                        , (selectedItemAttr, yellow `on` black)
+                        , (titleAttr, green `on` black)
                         ]
 
 drawUI :: AppState -> [Widget ResourceName]
-drawUI fs = [renderFileTree fs <+> renderSelection fs]
+drawUI fs = [renderFileTree fs]
 
 chooseCursor
   :: AppState
@@ -46,10 +50,11 @@ handleEvent
   :: AppState
   -> BrickEvent ResourceName CustomEvent
   -> EventM ResourceName (Next AppState)
-handleEvent s (VtyKey 'c' [MCtrl]) = halt s
-handleEvent s (VtyKey 'q' []) = halt s
+handleEvent fz (VtyKey 'c' [MCtrl]) = halt fz
+handleEvent fz (VtyKey 'q' []) = halt fz
+handleEvent fz (VtyKey '-' []) = continue $ toggleSelectionVisible fz
 handleEvent fz (VtyKey 'l' []) =  descendDir fz >>= continue
-handleEvent fz (VtyKey ' ' []) = continue $ toggleSelection fz
+handleEvent fz (VtyKey ' ' []) = toggleSelection fz >>= continue
 handleEvent fz (VtyEvent (EvKey KEnter _)) = do
   let f = getCurrentFilePath fz
   liftIO $ executeFile "vim" True (maybeToList f) Nothing
