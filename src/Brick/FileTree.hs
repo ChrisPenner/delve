@@ -10,9 +10,11 @@ module Brick.FileTree
   , moveToBottom
   , ascendDir
   , descendDir
-  , getSelectedFilePath
+  , getCurrentFilePath
   , getCurrentDir
   , renderFileTree
+  , renderSelection
+  , getFlagged
   )
 where
 

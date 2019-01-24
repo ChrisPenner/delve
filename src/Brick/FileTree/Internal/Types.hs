@@ -10,6 +10,7 @@ import qualified System.Directory.Tree as FT
 import qualified Data.Sequence as S
 import System.FilePath.Posix
 import System.Directory
+import qualified Data.Set as S
 
 data FileKind = Dir | File | Error
 
@@ -24,15 +25,16 @@ data FileContext =
 type SubTree = Cofree (GenericList String V.Vector) FileContext
 
 data FileTree = FZ
-  { parent :: S.Seq SubTree
+  { parents :: S.Seq SubTree
+  , selection :: S.Set FilePath
   , context :: SubTree
   }
 
 buildParent :: FilePath -> SubTree -> IO FileTree
 buildParent p child = do
-  FZ parents (c :< ls) <- newFileTree (takeDirectory p)
+  FZ parents s (c :< ls) <- newFileTree (takeDirectory p)
   let newChildren = fmap (replace p child) ls
-  return $ FZ parents (c :< newChildren)
+  return $ FZ parents s (c :< newChildren)
  where
   replace pth fc@((path -> pth') :< _) new | pth == pth' = new
                                            | otherwise   = fc
@@ -44,7 +46,7 @@ newFileTree currentDir = do
   return $ convert (takeDirectory absRoot) tree
 
 convert :: FilePath -> FT.DirTree FilePath -> FileTree
-convert root tree = FZ [] . go (normalise root) $ tree
+convert root tree = FZ [] mempty . go (normalise root) $ tree
  where
   go :: FilePath -> FT.DirTree FilePath -> SubTree
   go root' (FT.Failed { FT.name, FT.err }) =

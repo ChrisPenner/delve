@@ -21,8 +21,11 @@ renderHeader :: SubTree -> Widget String
 renderHeader ((path -> p) :< _) = str p <=> hBorder
 
 renderFileTree :: FileTree -> Widget String
-renderFileTree (FZ ps node) =
-  renderHeader node <=> (renderParents ps <+> renderNode node)
+renderFileTree (FZ { parents, context }) =
+  renderHeader context <=> (renderParents parents <+> renderNode context)
+
+renderSelection :: FileTree -> Widget String
+renderSelection (FZ { selection }) = vBox . fmap str . toList $ selection
 
 renderParents :: S.Seq SubTree -> Widget String
 renderParents S.Empty                    = emptyWidget

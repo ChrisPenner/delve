@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3e88a963e99ad59eaf6cfd3bb8d28775ec4f432c962a3b2acb5c3edd28d94ab1
+-- hash: b7191803505471d9db13ce862f68125f5f9e3c26d20d20a94d988bab2ef1586e
 
 name:           delve
 version:        0.0.0
@@ -46,6 +46,7 @@ library
     , directory-tree
     , filepath
     , free
+    , microlens
     , mtl
     , recursion-schemes
     , unix
@@ -70,6 +71,7 @@ executable delve
     , directory-tree
     , filepath
     , free
+    , microlens
     , mtl
     , recursion-schemes
     , unix
@@ -95,6 +97,7 @@ test-suite delve-test
     , directory-tree
     , filepath
     , free
+    , microlens
     , mtl
     , recursion-schemes
     , unix

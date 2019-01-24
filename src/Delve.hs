@@ -30,7 +30,7 @@ attrs = attrMap defAttr [ (fileBrowserSelectedAttr, red `on` black)
                         ]
 
 drawUI :: AppState -> [Widget ResourceName]
-drawUI fs = [renderFileTree fs]
+drawUI fs = [renderFileTree fs <+> renderSelection fs]
 
 chooseCursor
   :: AppState
@@ -51,7 +51,7 @@ handleEvent s (VtyKey 'q' []) = halt s
 handleEvent fz (VtyKey 'l' []) =  descendDir fz >>= continue
 handleEvent fz (VtyKey ' ' []) = continue $ toggleSelection fz
 handleEvent fz (VtyEvent (EvKey KEnter _)) = do
-  let f = getSelectedFilePath fz
+  let f = getCurrentFilePath fz
   liftIO $ executeFile "vim" True (maybeToList f) Nothing
 handleEvent fz (VtyKey 'h' []) =  ascendDir fz >>= continue
 handleEvent fz (VtyKey 'j' []) = moveDown fz >>= continue
