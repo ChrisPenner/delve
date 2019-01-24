@@ -2,7 +2,6 @@
 module Delve (app) where
 
 import           Brick
-import           Brick.Widgets.FileBrowser
 import           Brick.Widgets.List
 import           Graphics.Vty.Input.Events
 import           Graphics.Vty.Attributes

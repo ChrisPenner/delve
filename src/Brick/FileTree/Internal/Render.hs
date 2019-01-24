@@ -1,20 +1,32 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Brick.FileTree.Internal.Render where
+module Brick.FileTree.Internal.Render
+  ( selectedItemAttr
+  , titleAttr
+  , dirAttr
+  , fileAttr
+  , errorAttr
+  , cacheKey
+  , renderHeader
+  , renderFileTree
+  , selectionCacheKey
+  , renderSelection
+  )
+where
 
-import Brick.FileTree.Internal.Types
+import           Brick.FileTree.Internal.Types
 
-import Data.Foldable
-import Brick.Widgets.Core
-import Brick.Widgets.Border
-import Brick.Types
-import Brick.AttrMap
-import Brick.Widgets.List
-import Control.Comonad.Cofree as CF
-import Control.Comonad
-import Data.Bool
-import qualified Data.Sequence as S
+import           Data.Foldable
+import           Brick.Widgets.Core
+import           Brick.Widgets.Border
+import           Brick.Types
+import           Brick.AttrMap
+import           Brick.Widgets.List
+import           Control.Comonad.Cofree        as CF
+import           Control.Comonad
+import           Data.Bool
+import qualified Data.Sequence                 as S
 
 selectedItemAttr, titleAttr, dirAttr, fileAttr, errorAttr :: AttrName
 selectedItemAttr = "selectedItemAttr"
@@ -32,11 +44,18 @@ renderHeader ((path -> p) :< _) = withAttr titleAttr (str p) <=> hBorder
 renderFileTree :: FileTree -> Widget String
 renderFileTree fz@(FZ { parents, context, config }) =
   (   renderHeader context
-  <=> (renderParents parents <+> renderNode context)
+  <=> (renderParents parents <+> renderNode context <+> previewW)
   <=> selectionW
   )
  where
   selectionW = if showSelection config then renderSelection fz else emptyWidget
+  previewW   = if previewDir config then renderPreview context else emptyWidget
+
+renderPreview :: SubTree -> Widget String
+renderPreview (_ :< lst) = do
+  case listSelectedElement lst of
+    Just (_, node@(FC { kind = Dir } :< _)) -> vBorder <+> renderNode node
+    _ -> emptyWidget
 
 selectionCacheKey :: String
 selectionCacheKey = "delve!selection"

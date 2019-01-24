@@ -11,16 +11,17 @@ module Brick.FileTree.Internal.Types
   , buildParent
   , newFileTree
   , defaultConfig
-  ) where
+  )
+where
 
-import Brick.Widgets.List
-import qualified Data.Vector as V
-import Control.Comonad.Cofree as CF
-import qualified System.Directory.Tree as FT
-import qualified Data.Sequence as S
-import System.FilePath.Posix
-import System.Directory
-import qualified Data.Set as S
+import           Brick.Widgets.List
+import qualified Data.Vector                   as V
+import           Control.Comonad.Cofree        as CF
+import qualified System.Directory.Tree         as FT
+import qualified Data.Sequence                 as S
+import           System.FilePath.Posix
+import           System.Directory
+import qualified Data.Set                      as S
 
 data FileKind = Dir | File | Error
 
@@ -35,10 +36,11 @@ data FileContext =
 data Config =
   Config
     { showSelection :: Bool
+    , previewDir :: Bool
     }
 
 defaultConfig :: Config
-defaultConfig = Config {showSelection = True}
+defaultConfig = Config {showSelection = True, previewDir = False}
 
 type SubTree = Cofree (GenericList String V.Vector) FileContext
 
