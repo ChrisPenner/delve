@@ -10,6 +10,6 @@ import           Brick.Widgets.FileTree
 
 main :: IO ()
 main = do
-  fb  <- newFileTree "."
+  fb  <- newFileTree (const pure) "."
   res <- defaultMain app fb
   putStrLn $ getCurrentDir res

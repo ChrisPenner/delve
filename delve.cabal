@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 38df2a2eae4e9b068457b00ece7a1e30e1c5d0c69ff6a93ac25a2cb563be4b84
+-- hash: ae8dee13a8aa10bad1382a5d5810a2fedf49d2eb94ae3e2112c298b07baddfa6
 
 name:           delve
 version:        0.0.0
@@ -28,6 +28,7 @@ source-repository head
 library
   exposed-modules:
       Delve
+      Delve.Helpers
   other-modules:
       Paths_delve
   hs-source-dirs:

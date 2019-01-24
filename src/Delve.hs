@@ -13,7 +13,7 @@ import Data.Maybe
 
 type ResourceName = String
 type CustomEvent = ()
-type AppState = FileTree
+type AppState = (FileTree FilePath)
 
 app :: App AppState CustomEvent ResourceName
 app = App
@@ -34,7 +34,7 @@ attrs = attrMap defAttr [ (dirAttr, cyan `on` black)
                         ]
 
 drawUI :: AppState -> [Widget ResourceName]
-drawUI fs = [renderFileTree fs]
+drawUI fs = [renderFileTreeCustom renderFileContext fs]
 
 chooseCursor
   :: AppState
