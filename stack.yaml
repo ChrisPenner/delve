@@ -5,6 +5,9 @@ ghc-options:
 
 allow-newer: false
 
+packages:
+  - ../brick-filetree
+
 extra-deps:
   - brick-0.46
   - vty-5.24
