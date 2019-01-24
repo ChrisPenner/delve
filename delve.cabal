@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 923c1b7ed2438b1fcda1aa15bef1937066680763389abf5fab198f9fe8e32b2a
+-- hash: 38df2a2eae4e9b068457b00ece7a1e30e1c5d0c69ff6a93ac25a2cb563be4b84
 
 name:           delve
 version:        0.0.0
@@ -27,10 +27,6 @@ source-repository head
 
 library
   exposed-modules:
-      Brick.Widgets.FileTree
-      Brick.Widgets.FileTree.Internal.Actions
-      Brick.Widgets.FileTree.Internal.Render
-      Brick.Widgets.FileTree.Internal.Types
       Delve
   other-modules:
       Paths_delve
@@ -40,6 +36,7 @@ library
   build-depends:
       base >=4.11.1.0
     , brick ==0.46
+    , brick-filetree
     , comonad
     , containers
     , directory
@@ -63,7 +60,8 @@ executable delve
   ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wcompat -Widentities -Wredundant-constraints -fhide-source-paths -Wmissing-export-lists -Wpartial-fields -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       base >=4.11.1.0
-    , brick ==0.46
+    , brick
+    , brick-filetree
     , comonad
     , containers
     , delve
@@ -90,6 +88,7 @@ test-suite delve-test
   build-depends:
       base >=4.11.1.0
     , brick ==0.46
+    , brick-filetree
     , comonad
     , containers
     , delve

@@ -34,6 +34,7 @@ dependencies:
 - filepath
 - unix
 - microlens
+- brick-filetree
 
 
 library:
@@ -51,8 +52,6 @@ executables:
     dependencies:
       - delve
       - brick
-      - brick == 0.46
-      - vty
 
 
 tests:

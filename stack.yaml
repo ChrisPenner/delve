@@ -6,6 +6,7 @@ ghc-options:
 allow-newer: false
 
 packages:
+  - ./
   - ../brick-filetree
 
 extra-deps:

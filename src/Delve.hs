@@ -26,9 +26,10 @@ app = App
 
 attrs :: AttrMap
 attrs = attrMap defAttr [ (dirAttr, cyan `on` black)
-                        , (listSelectedFocusedAttr, black `on` white)
+                        , (listSelectedAttr, black `on` white)
+                        , (listSelectedFocusedAttr, black `on` green)
                         , (borderAttr, green `on` black)
-                        , (selectedItemAttr, yellow `on` black)
+                        , (flaggedItemAttr, yellow `on` black)
                         , (titleAttr, green `on` black)
                         ]
 
@@ -51,9 +52,9 @@ handleEvent
   -> EventM ResourceName (Next AppState)
 handleEvent fz (VtyKey 'c' [MCtrl]) = halt fz
 handleEvent fz (VtyKey 'q' []) = halt fz
-handleEvent fz (VtyKey '-' []) = continue $ toggleSelectionVisible fz
+handleEvent fz (VtyKey '-' []) = continue $ toggleFlaggedVisible fz
 handleEvent fz (VtyKey 'l' []) =  descendDir fz >>= continue
-handleEvent fz (VtyKey ' ' []) = toggleSelection fz >>= continue
+handleEvent fz (VtyKey ' ' []) = toggleFlagged fz >>= continue
 handleEvent fz (VtyEvent (EvKey KEnter _)) = do
   let f = getCurrentFilePath fz
   liftIO $ executeFile "vim" True (maybeToList f) Nothing
