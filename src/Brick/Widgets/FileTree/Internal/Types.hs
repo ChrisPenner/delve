@@ -2,7 +2,7 @@
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE RecordWildCards #-}
-module Brick.FileTree.Internal.Types
+module Brick.Widgets.FileTree.Internal.Types
   ( FileKind(..)
   , FileContext(..)
   , Config(..)
@@ -55,7 +55,7 @@ buildParent :: FilePath -> SubTree -> IO FileTree
 buildParent p child = do
   FZ { context = (c :< ls), ..} <- newFileTree (takeDirectory p)
   let newChildren = fmap (replace p child) ls
-  return $ FZ {context = (c :< newChildren), ..}
+  return $ FZ {context = c :< newChildren, ..}
  where
   replace pth fc@((path -> pth') :< _) new | pth == pth' = new
                                            | otherwise   = fc

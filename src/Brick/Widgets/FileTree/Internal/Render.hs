@@ -1,7 +1,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Brick.FileTree.Internal.Render
+module Brick.Widgets.FileTree.Internal.Render
   ( selectedItemAttr
   , titleAttr
   , dirAttr
@@ -15,7 +15,7 @@ module Brick.FileTree.Internal.Render
   )
 where
 
-import           Brick.FileTree.Internal.Types
+import           Brick.Widgets.FileTree.Internal.Types
 
 import           Data.Foldable
 import           Brick.Widgets.Core

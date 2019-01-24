@@ -7,7 +7,7 @@ import           Brick
 import           Brick.BChan
 
 import           Delve
-import           Brick.FileTree
+import           Brick.Widgets.FileTree
 import           Graphics.Vty
 
 main :: IO ()

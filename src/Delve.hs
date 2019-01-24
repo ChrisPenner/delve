@@ -5,7 +5,7 @@ import           Brick
 import           Brick.Widgets.List
 import           Graphics.Vty.Input.Events
 import           Graphics.Vty.Attributes
-import Brick.FileTree
+import Brick.Widgets.FileTree
 import Brick.Widgets.Border
 import System.Posix.Process
 import Control.Monad.IO.Class

@@ -1,4 +1,4 @@
-module Brick.FileTree
+module Brick.Widgets.FileTree
   ( FileTree
   , newFileTree
   , toggleSelection
@@ -24,6 +24,6 @@ module Brick.FileTree
   )
 where
 
-import           Brick.FileTree.Internal.Types
-import           Brick.FileTree.Internal.Actions
-import           Brick.FileTree.Internal.Render
+import           Brick.Widgets.FileTree.Internal.Types
+import           Brick.Widgets.FileTree.Internal.Actions
+import           Brick.Widgets.FileTree.Internal.Render

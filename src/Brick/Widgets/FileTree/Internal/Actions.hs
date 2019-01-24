@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
-module Brick.FileTree.Internal.Actions
+module Brick.Widgets.FileTree.Internal.Actions
   ( moveUp
   , moveDown
   , pageUp
@@ -29,8 +29,8 @@ import Data.Foldable
 import Control.Comonad.Cofree as CF
 import qualified Data.Sequence as Seq
 import qualified Data.Set as S
-import Brick.FileTree.Internal.Types
-import Brick.FileTree.Internal.Render
+import Brick.Widgets.FileTree.Internal.Types
+import Brick.Widgets.FileTree.Internal.Render
 import Control.Monad.IO.Class
 import Control.Comonad
 import Data.Maybe
