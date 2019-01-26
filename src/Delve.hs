@@ -6,6 +6,7 @@ import           Brick.Widgets.List
 import           Graphics.Vty.Input.Events
 import           Graphics.Vty.Attributes
 import Brick.Widgets.FileTree
+import Brick.Scripting
 import Brick.Widgets.Border
 import System.Posix.Process
 import Control.Monad.IO.Class
@@ -61,4 +62,5 @@ handleEvent fz (VtyEvent (EvKey KEnter _)) = do
 handleEvent fz (VtyKey 'h' []) =  ascendDir fz >>= continue
 handleEvent fz (VtyKey 'j' []) = moveDown fz >>= continue
 handleEvent fz (VtyKey 'k' []) = moveUp fz >>= continue
+handleEvent fz (VtyKey 'o' []) = simpleCommand fz "scr" >> continue fz
 handleEvent fz _ = continue fz
