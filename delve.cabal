@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ae8dee13a8aa10bad1382a5d5810a2fedf49d2eb94ae3e2112c298b07baddfa6
+-- hash: 3f5f3cc5ffe2db35b1ac7d6d5a6dfc32c7668fdb9868ed78547f5946123c2ea5
 
 name:           delve
 version:        0.0.0
@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      Brick.Scripting
       Delve
       Delve.Helpers
   other-modules:
@@ -35,7 +36,8 @@ library
       src
   ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wcompat -Widentities -Wredundant-constraints -fhide-source-paths -Wmissing-export-lists -Wpartial-fields
   build-depends:
-      base >=4.11.1.0
+      async
+    , base >=4.11.1.0
     , brick ==0.46
     , brick-filetree
     , comonad
@@ -46,6 +48,7 @@ library
     , free
     , microlens
     , mtl
+    , process
     , recursion-schemes
     , unix
     , vector
@@ -60,7 +63,8 @@ executable delve
       app
   ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wcompat -Widentities -Wredundant-constraints -fhide-source-paths -Wmissing-export-lists -Wpartial-fields -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
-      base >=4.11.1.0
+      async
+    , base >=4.11.1.0
     , brick
     , brick-filetree
     , comonad
@@ -72,6 +76,7 @@ executable delve
     , free
     , microlens
     , mtl
+    , process
     , recursion-schemes
     , unix
     , vector
@@ -87,7 +92,8 @@ test-suite delve-test
       test
   ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wcompat -Widentities -Wredundant-constraints -fhide-source-paths -Wmissing-export-lists -Wpartial-fields -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.11.1.0
+      async
+    , base >=4.11.1.0
     , brick ==0.46
     , brick-filetree
     , comonad
@@ -99,6 +105,7 @@ test-suite delve-test
     , free
     , microlens
     , mtl
+    , process
     , recursion-schemes
     , unix
     , vector

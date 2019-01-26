@@ -35,6 +35,8 @@ dependencies:
 - unix
 - microlens
 - brick-filetree
+- process
+- async
 
 
 library:
