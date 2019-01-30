@@ -45,6 +45,7 @@ attrs = attrMap defAttr [ (dirAttr, cyan `on` black)
                         , (borderAttr, green `on` black)
                         , (flaggedItemAttr, yellow `on` black)
                         , (titleAttr, green `on` black)
+                        , (scriptOverlayBGAttr, bg $ rgbColor 5 5 5)
                         ]
 
 drawUI :: AppState -> [Widget ResourceName]

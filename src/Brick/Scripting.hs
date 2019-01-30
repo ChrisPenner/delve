@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Brick.Scripting where
 
 import Brick.Widgets.Core
@@ -7,6 +8,7 @@ import Brick.Types
 import Brick.Widgets.Edit
 import Brick.Widgets.FileTree
 import Brick.Widgets.Border
+import Brick.AttrMap
 import Control.Concurrent
 import Control.Concurrent.Async
 import Control.Exception
@@ -127,7 +129,13 @@ handleScriptEvents (SpawnDialog cmd q) s =
       eName    = cmd
   in  return $ (s & _prompt ?~ editor eName numLines q)
 
+scriptOverlayBGAttr :: AttrName
+scriptOverlayBGAttr = "script-overlay-bg"
+
 renderScripting :: ScriptingData -> Widget String
 renderScripting SD { prompt = Just e } =
-  border $ renderEditor (vBox . fmap str) True e
+  withAttr scriptOverlayBGAttr
+    $   padTopBottom 2
+    $   renderEditor (vBox . fmap str) True e
+    <=> hBorder
 renderScripting _ = emptyWidget
