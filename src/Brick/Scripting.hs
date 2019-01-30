@@ -1,20 +1,26 @@
 module Brick.Scripting where
 
-import Brick.Types
 import System.IO
-import System.Process hiding (createPipe)
-import System.Environment
-import System.Posix.IO
-import System.Posix.Types
 import Control.Exception
-import Foreign.C.Types
-import Data.Foldable
-import Control.Monad.IO.Class
+import System.Process
 import Control.Concurrent.Async
+import Brick.BChan
+import Brick.Types
+import Brick.Widgets.Dialog
 import Brick.Widgets.FileTree
-import Data.Maybe
+import Delve.Events
+import qualified Streaming.Prelude as SP
 import Control.Monad
-import Data.List
+import Control.Monad.IO.Class
+import GHC.IO.Handle.FD
+import Data.Bifoldable
+import Control.Concurrent
+import Data.Maybe
+import System.Posix.Process
+
+data ScriptingData =
+  SD { dialog :: Maybe (Dialog String)
+     }
 
 flaggedKey :: String
 flaggedKey = "DELVE_FLAGGED"
@@ -31,52 +37,77 @@ spawnDialogPipeKey = "DELVE_SPAWN_DIALOG"
 dialogResponsePipeKey :: String
 dialogResponsePipeKey = "DELVE_DIALOG_RESPONSE"
 
-type Pipe = (Fd, Fd)
+type Pipe = (Handle, Handle)
 
-simpleCommand :: FileTree a -> String -> EventM String ()
-simpleCommand ft cmd = liftIO $ do
-  let currentFilePath = fromMaybe "" $ getCurrentFilePath ft
-  let currentDir      = getCurrentDir ft
-  let flaggedItems    = getFlagged ft
-  devNull <- openFile "/dev/null" WriteMode
-  void $ createProcess (proc cmd [])
-    { env     = Just
-      [ (flaggedKey   , intercalate "\n" flaggedItems)
-      , (focusedKey   , currentFilePath)
-      , (currentDirKey, currentDir)
-      ]
-    , std_in  = UseHandle devNull
-    , std_out = UseHandle devNull
-    , std_err = UseHandle devNull
-    }
+handleCmd :: String -> FileTree a -> EventM String ()
+handleCmd cmd ft = void . liftIO . forkIO $ bracket acquirePipeDescriptors
+                                                    (spawnCmd cmd)
+                                                    releasePipeDescriptors
+
+-- simpleCommand :: FileTree a -> String -> EventM String ()
+-- simpleCommand ft cmd = liftIO $ do
+--   let currentFilePath = fromMaybe "" $ getCurrentFilePath ft
+--   let currentDir      = getCurrentDir ft
+--   let flaggedItems    = getFlagged ft
+--   withFile "/dev/null" WriteMode
+--     $ \devNull -> do
+--       (_, _, _, pHandle) <- createProcess (proc cmd [])
+--         { env     = Just
+--           [ (flaggedKey   , intercalate "\n" flaggedItems)
+--           , (focusedKey   , currentFilePath)
+--           , (currentDirKey, currentDir)
+--           ]
+--         , std_in  = UseHandle devNull
+--         , std_out = UseHandle devNull
+--         , std_err = UseHandle devNull
+--         }
 
 
--- acquirePipeDescriptors :: IO (Pipe, Pipe)
--- acquirePipeDescriptors = do
---   spawnDialogPipe    <- createPipe
---   dialogResponsePipe <- createPipe
---   return (spawnDialogPipe, dialogResponsePipe)
 
--- releasePipeDescriptors :: (Pipe, Pipe) -> IO ()
--- releasePipeDescriptors ((a, b), (c, d)) = traverse_ closeFd [a, b, c, d]
+acquirePipeDescriptors :: IO (Pipe, Pipe)
+acquirePipeDescriptors = do
+  spawnDialogPipe    <- createPipe
+  dialogResponsePipe <- createPipe
+  return (spawnDialogPipe, dialogResponsePipe)
 
--- runCommand :: String -> EventM r ()
--- runCommand cmdStr = liftIO
---   $ bracket acquirePipeDescriptors releasePipeDescriptors (runCommand' cmdStr)
+releasePipeDescriptors :: (Pipe, Pipe) -> IO ()
+releasePipeDescriptors (pa, pb) = do
+  bitraverse_ hClose hClose pa
+  bitraverse_ hClose hClose pb
 
--- runCommand' :: String -> (Pipe, Pipe) -> IO ()
--- runCommand' cmdStr ((spawnDialogIn, spawnDialogOut), (dialogResponseIn, dialogResponseOut))
---   = do
---     (_, _, _, pHandle) <- createProcess (proc cmdStr [])
---       { env = Just
---         [ (spawnDialogPipeKey   , show spawnDialogIn)
---         , (dialogResponsePipeKey, show dialogResponseOut)
---         ]
---       }
---     spawnDialogOutH <- fdToHandle spawnDialogOut
---     pWait           <- async (waitForProcess pHandle)
---     dialogRequest   <- async (hGetLine spawnDialogOutH)
---     result          <- waitEither pWait dialogRequest
---     case result of
---       Left  _        -> return ()
---       Right dRequest -> undefined
+pipeInput :: (a, b) -> a
+pipeInput = fst
+pipeOutput :: (a, b) -> b
+pipeOutput = snd
+
+spawnCmd :: String -> (Pipe, Pipe) -> IO ()
+spawnCmd cmdStr (spawnDialogP, dialogResponseP) = do
+  spawnDialogInFD       <- show <$> handleToFd (pipeInput spawnDialogP)
+  dialogResponseOutFD   <- show <$> handleToFd (pipeOutput dialogResponseP)
+  (_, _, _, procHandle) <- withFile "/dev/null" WriteMode $ \devNull -> do
+    createProcess (proc cmdStr [])
+      { env     = Just
+        [ (spawnDialogPipeKey   , spawnDialogInFD)
+        , (dialogResponsePipeKey, dialogResponseOutFD)
+        ]
+      , std_in  = UseHandle devNull
+      , std_out = UseHandle devNull
+      , std_err = UseHandle devNull
+      }
+  let dialogWorker = dialogWatcher spawnDialogP undefined
+  void $ withAsync dialogWorker $ const (waitForProcess procHandle)
+
+dialogWatcher :: Pipe -> BChan DelveEvent -> IO ()
+dialogWatcher dialogRequestP eChan = do
+  SP.effects
+    ( SP.mapM (sendToChan . ScriptEvent . SpawnDialog)
+    $ SP.fromHandle (pipeOutput dialogRequestP)
+    )
+ where
+  sendToChan :: DelveEvent -> IO ()
+  sendToChan de = writeBChan eChan de
+
+openInVim :: FileTree a -> EventM r ()
+openInVim ft = do
+  let f = getCurrentFilePath ft
+  liftIO $ executeFile "vim" True (maybeToList f) Nothing

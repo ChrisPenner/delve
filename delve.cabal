@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3f5f3cc5ffe2db35b1ac7d6d5a6dfc32c7668fdb9868ed78547f5946123c2ea5
+-- hash: 2c0d7fdca885a218aa7a2f79fe301bb11b71bb4d4eb2b5c5f840dd81c7fcd11c
 
 name:           delve
 version:        0.0.0
@@ -29,6 +29,7 @@ library
   exposed-modules:
       Brick.Scripting
       Delve
+      Delve.Events
       Delve.Helpers
   other-modules:
       Paths_delve
@@ -46,10 +47,12 @@ library
     , directory-tree
     , filepath
     , free
-    , microlens
+    , generic-lens
+    , lens
     , mtl
     , process
     , recursion-schemes
+    , streaming
     , unix
     , vector
     , vty
@@ -74,10 +77,12 @@ executable delve
     , directory-tree
     , filepath
     , free
-    , microlens
+    , generic-lens
+    , lens
     , mtl
     , process
     , recursion-schemes
+    , streaming
     , unix
     , vector
     , vty
@@ -103,10 +108,12 @@ test-suite delve-test
     , directory-tree
     , filepath
     , free
-    , microlens
+    , generic-lens
+    , lens
     , mtl
     , process
     , recursion-schemes
+    , streaming
     , unix
     , vector
     , vty

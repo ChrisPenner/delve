@@ -7,9 +7,11 @@ import           Brick
 
 import           Delve
 import           Brick.Widgets.FileTree
+import           Brick.BChan
 
 main :: IO ()
 main = do
-  fb  <- newFileTree (const pure) "."
-  res <- defaultMain app fb
-  putStrLn $ getCurrentDir res
+  ft    <- newFileTree (const pure) "."
+  eChan <- newBChan 10
+  res   <- defaultMain app (AppState {fileTree = ft, eventChannel = eChan})
+  putStrLn . getCurrentDir . fileTree $ res
