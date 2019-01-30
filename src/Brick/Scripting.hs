@@ -1,26 +1,35 @@
+{-# LANGUAGE TypeApplications #-}
 module Brick.Scripting where
 
-import System.IO
-import Control.Exception
-import System.Process
-import Control.Concurrent.Async
+import Brick.Widgets.Core
 import Brick.BChan
 import Brick.Types
-import Brick.Widgets.Dialog
+import Brick.Widgets.Edit
 import Brick.Widgets.FileTree
-import Delve.Events
-import qualified Streaming.Prelude as SP
+import Brick.Widgets.Border
+import Control.Concurrent
+import Control.Concurrent.Async
+import Control.Exception
+import Control.Lens
 import Control.Monad
 import Control.Monad.IO.Class
-import GHC.IO.Handle.FD
 import Data.Bifoldable
-import Control.Concurrent
+import Data.Generics.Product
 import Data.Maybe
+import Delve.Events
+import GHC.Generics
+import GHC.IO.Handle.FD
+import System.IO
 import System.Posix.Process
+import System.Process
+import qualified Streaming.Prelude as SP
 
-data ScriptingData =
-  SD { dialog :: Maybe (Dialog String)
-     }
+newtype ScriptingData =
+  SD { prompt :: Maybe (Editor String String)
+     } deriving Generic
+
+_prompt :: Lens' ScriptingData (Maybe (Editor String String))
+_prompt = field @"prompt"
 
 flaggedKey :: String
 flaggedKey = "DELVE_FLAGGED"
@@ -39,10 +48,10 @@ dialogResponsePipeKey = "DELVE_DIALOG_RESPONSE"
 
 type Pipe = (Handle, Handle)
 
-handleCmd :: String -> FileTree a -> EventM String ()
-handleCmd cmd ft = void . liftIO . forkIO $ bracket acquirePipeDescriptors
-                                                    (spawnCmd cmd)
-                                                    releasePipeDescriptors
+handleCmd :: BChan DelveEvent -> String -> EventM String ()
+handleCmd eChan cmd = void . liftIO . forkIO $ bracket acquirePipeDescriptors
+                                                       (spawnCmd eChan cmd)
+                                                       releasePipeDescriptors
 
 -- simpleCommand :: FileTree a -> String -> EventM String ()
 -- simpleCommand ft cmd = liftIO $ do
@@ -80,8 +89,8 @@ pipeInput = fst
 pipeOutput :: (a, b) -> b
 pipeOutput = snd
 
-spawnCmd :: String -> (Pipe, Pipe) -> IO ()
-spawnCmd cmdStr (spawnDialogP, dialogResponseP) = do
+spawnCmd :: BChan DelveEvent -> String -> (Pipe, Pipe) -> IO ()
+spawnCmd eChan cmdStr (spawnDialogP, dialogResponseP) = do
   spawnDialogInFD       <- show <$> handleToFd (pipeInput spawnDialogP)
   dialogResponseOutFD   <- show <$> handleToFd (pipeOutput dialogResponseP)
   (_, _, _, procHandle) <- withFile "/dev/null" WriteMode $ \devNull -> do
@@ -94,13 +103,13 @@ spawnCmd cmdStr (spawnDialogP, dialogResponseP) = do
       , std_out = UseHandle devNull
       , std_err = UseHandle devNull
       }
-  let dialogWorker = dialogWatcher spawnDialogP undefined
+  let dialogWorker = (dialogWatcher cmdStr) spawnDialogP eChan
   void $ withAsync dialogWorker $ const (waitForProcess procHandle)
 
-dialogWatcher :: Pipe -> BChan DelveEvent -> IO ()
-dialogWatcher dialogRequestP eChan = do
+dialogWatcher :: String -> Pipe -> BChan DelveEvent -> IO ()
+dialogWatcher cmdStr dialogRequestP eChan = do
   SP.effects
-    ( SP.mapM (sendToChan . ScriptEvent . SpawnDialog)
+    ( SP.mapM (sendToChan . ScriptEvent . SpawnDialog cmdStr)
     $ SP.fromHandle (pipeOutput dialogRequestP)
     )
  where
@@ -111,3 +120,14 @@ openInVim :: FileTree a -> EventM r ()
 openInVim ft = do
   let f = getCurrentFilePath ft
   liftIO $ executeFile "vim" True (maybeToList f) Nothing
+
+handleScriptEvents :: ScriptEvent -> ScriptingData -> EventM r ScriptingData
+handleScriptEvents (SpawnDialog cmd q) s =
+  let numLines = Just 1
+      eName    = cmd
+  in  return $ (s & _prompt ?~ editor eName numLines q)
+
+renderScripting :: ScriptingData -> Widget String
+renderScripting SD { prompt = Just e } =
+  border $ renderEditor (vBox . fmap str) True e
+renderScripting _ = emptyWidget

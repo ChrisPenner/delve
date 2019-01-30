@@ -11,23 +11,25 @@ import           Graphics.Vty.Attributes
 import Brick.Widgets.FileTree
 import Brick.Scripting
 import Brick.Widgets.Border
-import System.Posix.Process
-import Control.Monad.IO.Class
-import Data.Maybe
 import Delve.Events
 import Data.Generics.Product
 import Control.Monad
 import GHC.Generics
+import Brick.Widgets.Edit
 
 type ResourceName = String
-type CustomEvent = ()
 data AppState =
   AppState
     { fileTree :: FileTree FilePath
     , eventChannel :: BChan DelveEvent
+    , scriptingData :: ScriptingData
     } deriving Generic
 
-app :: App AppState CustomEvent ResourceName
+_scriptingData
+  :: Lens' AppState ScriptingData 
+_scriptingData = field @"scriptingData"
+
+app :: App AppState DelveEvent ResourceName
 app = App
   { appDraw         = drawUI
   , appChooseCursor = chooseCursor
@@ -46,7 +48,7 @@ attrs = attrMap defAttr [ (dirAttr, cyan `on` black)
                         ]
 
 drawUI :: AppState -> [Widget ResourceName]
-drawUI fs = [renderFileTreeCustom renderFileContext (fs^._fileTree)]
+drawUI s = [renderScripting (s^._scriptingData), renderFileTreeCustom renderFileContext (s^._fileTree)]
 
 chooseCursor
   :: AppState
@@ -62,7 +64,7 @@ _fileTree :: Lens' AppState (FileTree FilePath)
 _fileTree = field @"fileTree"
 
 handleEvent
-  :: BrickEvent ResourceName CustomEvent
+  :: BrickEvent ResourceName DelveEvent
   -> AppState
   -> EventM ResourceName (Next AppState)
 handleEvent (VtyKey 'c' [MCtrl]) = halt
@@ -76,7 +78,5 @@ handleEvent (VtyEvent (EvKey KEnter _)) = \s -> do
 handleEvent (VtyKey 'h' []) = _fileTree %%~ ascendDir >=> continue
 handleEvent (VtyKey 'j' []) = _fileTree %%~ moveDown >=> continue
 handleEvent (VtyKey 'k' []) = _fileTree %%~ moveUp  >=> continue
-handleEvent (VtyKey 'o' []) = \s -> do
-  handleCmd "scr"  (s ^. _fileTree)
-  continue s
+handleEvent (VtyKey 'o' []) = \s -> do handleCmd (eventChannel s) "scr" >> continue s
 handleEvent _ = continue

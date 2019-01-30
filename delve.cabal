@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2c0d7fdca885a218aa7a2f79fe301bb11b71bb4d4eb2b5c5f840dd81c7fcd11c
+-- hash: a2d0398294c4bfd418bc4c04861d23d04488f6f82e9a346d4d40277de0aa9f92
 
 name:           delve
 version:        0.0.0
@@ -35,6 +35,7 @@ library
       Paths_delve
   hs-source-dirs:
       src
+  default-extensions: DeriveGeneric TypeApplications
   ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wcompat -Widentities -Wredundant-constraints -fhide-source-paths -Wmissing-export-lists -Wpartial-fields
   build-depends:
       async
@@ -64,6 +65,7 @@ executable delve
       Paths_delve
   hs-source-dirs:
       app
+  default-extensions: DeriveGeneric TypeApplications
   ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wcompat -Widentities -Wredundant-constraints -fhide-source-paths -Wmissing-export-lists -Wpartial-fields -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       async
@@ -95,6 +97,7 @@ test-suite delve-test
       Paths_delve
   hs-source-dirs:
       test
+  default-extensions: DeriveGeneric TypeApplications
   ghc-options: -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates -Wcompat -Widentities -Wredundant-constraints -fhide-source-paths -Wmissing-export-lists -Wpartial-fields -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       async
