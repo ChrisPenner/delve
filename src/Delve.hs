@@ -15,7 +15,7 @@ import Delve.Events
 import Data.Generics.Product
 import Control.Monad
 import GHC.Generics
-import Brick.Widgets.Edit
+import Control.Monad.IO.Class
 
 type ResourceName = String
 data AppState =
@@ -23,6 +23,7 @@ data AppState =
     { fileTree :: FileTree FilePath
     , eventChannel :: BChan DelveEvent
     , scriptingData :: ScriptingData
+    , status :: String
     } deriving Generic
 
 _scriptingData
@@ -33,7 +34,7 @@ app :: App AppState DelveEvent ResourceName
 app = App
   { appDraw         = drawUI
   , appChooseCursor = chooseCursor
-  , appHandleEvent  = flip handleEvent
+  , appHandleEvent  = interceptPromptEvents
   , appStartEvent   = pure
   , appAttrMap      = const attrs
   }
@@ -49,7 +50,7 @@ attrs = attrMap defAttr [ (dirAttr, cyan `on` black)
                         ]
 
 drawUI :: AppState -> [Widget ResourceName]
-drawUI s = [renderScripting (s^._scriptingData), renderFileTreeCustom renderFileContext (s^._fileTree)]
+drawUI s = [renderScripting (s^._scriptingData), renderFileTreeCustom renderFileContext (s^._fileTree) <=> hBorder <=> str (status s)]
 
 chooseCursor
   :: AppState
@@ -63,6 +64,11 @@ pattern VtyKey k mods = VtyEvent (EvKey (KChar k) mods)
 
 _fileTree :: Lens' AppState (FileTree FilePath)
 _fileTree = field @"fileTree"
+
+interceptPromptEvents :: AppState -> BrickEvent ResourceName DelveEvent -> EventM ResourceName (Next AppState)
+interceptPromptEvents s (VtyEvent e) | has (_scriptingData . _promptData . _Just) s = do
+  (_scriptingData %%~ handleScriptingEvent e) s >>= continue
+interceptPromptEvents s e = handleEvent e s
 
 handleEvent
   :: BrickEvent ResourceName DelveEvent
@@ -80,4 +86,6 @@ handleEvent (VtyKey 'h' []) = _fileTree %%~ ascendDir >=> continue
 handleEvent (VtyKey 'j' []) = _fileTree %%~ moveDown >=> continue
 handleEvent (VtyKey 'k' []) = _fileTree %%~ moveUp  >=> continue
 handleEvent (VtyKey 'o' []) = \s -> do handleCmd (eventChannel s) "scr" >> continue s
+handleEvent (AppEvent (ScriptEvent e)) =
+  (_scriptingData %%~ handleScriptEvents e)  >=> continue 
 handleEvent _ = continue

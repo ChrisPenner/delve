@@ -9,12 +9,10 @@ import           Delve
 import           Brick.Scripting
 import           Brick.Widgets.FileTree
 import           Brick.BChan
-import           Brick.Widgets.Edit
 import Graphics.Vty
 
 main :: IO ()
 main = do
-
   ft    <- newFileTree (const pure) "."
   eChan <- newBChan 10
   res   <- customMain
@@ -24,7 +22,8 @@ main = do
     (AppState
       { fileTree      = ft
       , eventChannel  = eChan
-      , scriptingData = SD {prompt = Just (editor "hi" (Just 1) "testing:)")}
+      , scriptingData = SD {promptData = Nothing}
+      , status        = "..."
       }
     )
   putStrLn . getCurrentDir . fileTree $ res

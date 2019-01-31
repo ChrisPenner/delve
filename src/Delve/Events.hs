@@ -1,5 +1,9 @@
 module Delve.Events where
 
-newtype DelveEvent = ScriptEvent ScriptEvent
+import System.IO
 
-data ScriptEvent = SpawnDialog String String
+newtype DelveEvent = ScriptEvent ScriptEvent
+  deriving Show
+
+data ScriptEvent = SpawnPrompt String Handle String
+  deriving Show
