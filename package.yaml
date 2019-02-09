@@ -39,6 +39,7 @@ dependencies:
 - async
 - streaming
 - generic-lens
+- text
 
 
 library:

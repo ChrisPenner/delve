@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a2d0398294c4bfd418bc4c04861d23d04488f6f82e9a346d4d40277de0aa9f92
+-- hash: cf16cf11348001743ed99b563ca0c3884436f8a8de95d4313a549e0a091f8785
 
 name:           delve
 version:        0.0.0
@@ -29,8 +29,11 @@ library
   exposed-modules:
       Brick.Scripting
       Delve
+      Delve.Commands
       Delve.Events
       Delve.Helpers
+      Delve.ScriptDialog
+      Delve.State
   other-modules:
       Paths_delve
   hs-source-dirs:
@@ -54,6 +57,7 @@ library
     , process
     , recursion-schemes
     , streaming
+    , text
     , unix
     , vector
     , vty
@@ -85,6 +89,7 @@ executable delve
     , process
     , recursion-schemes
     , streaming
+    , text
     , unix
     , vector
     , vty
@@ -117,6 +122,7 @@ test-suite delve-test
     , process
     , recursion-schemes
     , streaming
+    , text
     , unix
     , vector
     , vty
