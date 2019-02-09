@@ -99,7 +99,23 @@ handleEvent (VtyKey 'j' []) = _fileTree %%~ moveDown >=> continue
 handleEvent (VtyKey 'k' []) = _fileTree %%~ moveUp >=> continue
 handleEvent (VtyKey 'o' []) =
   \s -> do
-    spawnCmd (eventChannel s) "scr" (M.fromList []) >> continue s
+    spawnCmd (eventChannel s) "scr" (treeContext . fileTree $ s) >> continue s
+  where
+    treeContext ft =
+      M.fromList
+        [ (flaggedKey, unlines $ getFlagged ft)
+        , (focusedKey, fromMaybe "" $ getCurrentFilePath ft)
+        , (currentDirKey, getCurrentDir ft)
+        ]
 handleEvent (AppEvent (ScriptEvent e)) =
   (_prompt %%~ handleScriptEvents e) >=> continue
 handleEvent _ = continue
+
+flaggedKey :: String
+flaggedKey = "DELVE_FLAGGED"
+
+focusedKey :: String
+focusedKey = "DELVE_FOCUSED"
+
+currentDirKey :: String
+currentDirKey = "DELVE_CURRENT_DIR"

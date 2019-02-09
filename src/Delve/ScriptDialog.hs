@@ -13,20 +13,10 @@ import Control.Lens as L
 import Control.Monad.IO.Class
 
 import Delve.Events
-import Delve.State
 
 import GHC.IO.Handle
 
 import qualified Graphics.Vty.Input.Events as V
-
-flaggedKey :: String
-flaggedKey = "DELVE_FLAGGED"
-
-focusedKey :: String
-focusedKey = "DELVE_FOCUSED"
-
-currentDirKey :: String
-currentDirKey = "DELVE_CURRENT_DIR"
 
 scriptOverlayBGAttr :: AttrName
 scriptOverlayBGAttr = "script-overlay-bg"
