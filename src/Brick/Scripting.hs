@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE DataKinds #-}
 module Brick.Scripting where
 
 import Brick.AttrMap
@@ -67,8 +68,7 @@ promptResponsePipeKey = "DELVE_PROMPT_RESPONSE"
 type Pipe = (Handle, Handle)
 
 handleCmd :: BChan DelveEvent -> String -> EventM String ()
-handleCmd eChan cmd = void . liftIO . forkIO $ bracket acquirePipeDescriptors
-
+handleCmd eChan cmd = void . liftIO . forkOS $ bracket acquirePipeDescriptors
                                                        releasePipeDescriptors
                                                        (spawnCmd eChan cmd)
 
@@ -76,12 +76,15 @@ acquirePipeDescriptors :: IO (Pipe, Pipe)
 acquirePipeDescriptors = do
   spawnPromptPipe    <- createPipe
   promptResponsePipe <- createPipe
+  let lnBuffer = (`hSetBuffering` LineBuffering)
+  bitraverse_ lnBuffer lnBuffer spawnPromptPipe
+  bitraverse_ lnBuffer lnBuffer promptResponsePipe
   return (spawnPromptPipe, promptResponsePipe)
 
 releasePipeDescriptors :: (Pipe, Pipe) -> IO ()
 releasePipeDescriptors (pa, pb) = do
   bitraverse_ hClose hClose pa
-  -- bitraverse_ hClose hClose pb
+  bitraverse_ hClose hClose pb
 
 pipeOutput :: (Handle, Handle) -> Handle
 pipeOutput = fst
@@ -138,7 +141,6 @@ handleScriptEvents (SpawnPrompt cmd promptResponseH q) s =
           }
         )
 
-
 handleScriptingEvent :: V.Event -> ScriptingData -> EventM String ScriptingData
 handleScriptingEvent (V.EvKey V.KEnter _) s = do
   case
@@ -147,8 +149,8 @@ handleScriptingEvent (V.EvKey V.KEnter _) s = do
     of
       Nothing            -> return ()
       Just (txtLines, h) -> liftIO $ do
-        liftIO . hPutStrLn h $ unlines txtLines
-        liftIO $ hClose h
+        liftIO . hPutStr h $ unlines txtLines
+
   return (s & _promptData .~ Nothing)
 handleScriptingEvent e s =
   (_promptData . _Just . _prompt %%~ handleEditorEvent e) s
