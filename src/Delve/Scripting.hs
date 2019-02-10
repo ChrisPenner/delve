@@ -41,9 +41,6 @@ acquirePipeDescriptors =
   do
     spawnPromptPipe <- createPipe
     promptResponsePipe <- createPipe
-    let lnBuffer = (`hSetBuffering` LineBuffering)
-    bitraverse_ lnBuffer lnBuffer spawnPromptPipe
-    bitraverse_ lnBuffer lnBuffer promptResponsePipe
     return (spawnPromptPipe, promptResponsePipe)
 
 releasePipeDescriptors :: (Pipe, Pipe) -> IO ()
@@ -63,7 +60,9 @@ spawnCmd' :: String -> CmdEnv -> CmdOutputHandler -> IO CmdInputHandler
 spawnCmd' cmdStr cmdEnv responseHandler =
   do
     (spawnPromptPipe,promptResponsePipe) <- acquirePipeDescriptors
-    let cmdInputHandler = hPutStr (pipeInput promptResponsePipe)
+    let cmdInputHandler inp =
+          hPutStr (pipeInput promptResponsePipe) inp
+          >> hFlush (pipeInput promptResponsePipe)
     void . forkIO
       $ do
         spawnPromptInFD <- show <$> handleToFd (pipeInput spawnPromptPipe)
