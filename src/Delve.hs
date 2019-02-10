@@ -1,11 +1,10 @@
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE PatternSynonyms #-}
 
 module Delve (app,AppState(..)) where
 
 import Brick
-import Brick.Scripting
+import Brick.BChan
 import Brick.Widgets.Border
 import Brick.Widgets.Edit
 import Brick.Widgets.FileTree
@@ -13,6 +12,7 @@ import Brick.Widgets.List
 
 import Control.Lens
 import Control.Monad
+import Control.Monad.IO.Class
 
 import Data.Generics.Product
 import qualified Data.Map as M
@@ -21,16 +21,15 @@ import Data.Maybe
 import Delve.Commands
 import Delve.Events
 import Delve.ScriptDialog
+import Delve.Scripting
 import Delve.State
-
-import GHC.IO.Handle
 
 import Graphics.Vty.Attributes
 import Graphics.Vty.Input.Events
 
 type ResourceName = String
 
-_prompt :: Lens' AppState (Maybe (Editor String String, Handle))
+_prompt :: Lens' AppState (Maybe (Editor String String, CmdInputHandler))
 _prompt = field @"prompt"
 
 app :: App AppState DelveEvent ResourceName
@@ -99,16 +98,26 @@ handleEvent (VtyKey 'j' []) = _fileTree %%~ moveDown >=> continue
 handleEvent (VtyKey 'k' []) = _fileTree %%~ moveUp >=> continue
 handleEvent (VtyKey 'o' []) =
   \s -> do
-    spawnCmd (eventChannel s) "scr" (treeContext . fileTree $ s) >> continue s
+    void . liftIO
+      $ spawnCmd
+        "scr"
+        (treeContext . fileTree $ s)
+        (responseToChannel (eventChannel s))
+    continue s
   where
+    responseToChannel :: BChan DelveEvent -> CmdOutputHandler
+    responseToChannel eChan responder respStr =
+      do
+        appendFile "log" (respStr ++ "\n")
+        writeBChan eChan (SpawnPrompt "scr" respStr responder)
+
     treeContext ft =
       M.fromList
         [ (flaggedKey, unlines $ getFlagged ft)
         , (focusedKey, fromMaybe "" $ getCurrentFilePath ft)
         , (currentDirKey, getCurrentDir ft)
         ]
-handleEvent (AppEvent (ScriptEvent e)) =
-  (_prompt %%~ handleScriptEvents e) >=> continue
+handleEvent (AppEvent e) = (_prompt %%~ handleScriptEvents e) >=> continue
 handleEvent _ = continue
 
 flaggedKey :: String

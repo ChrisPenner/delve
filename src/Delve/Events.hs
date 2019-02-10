@@ -1,9 +1,5 @@
-module Delve.Events where
+module Delve.Events (DelveEvent(..)) where
 
-import System.IO
+import Delve.Scripting
 
-newtype DelveEvent = ScriptEvent ScriptEvent
-  deriving Show
-
-data ScriptEvent = SpawnPrompt String Handle String
-  deriving Show
+data DelveEvent = SpawnPrompt String String CmdInputHandler

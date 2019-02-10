@@ -5,15 +5,15 @@ import Brick.Widgets.Edit
 import Brick.Widgets.FileTree
 
 import Delve.Events
+import Delve.Scripting
 
 import GHC.Generics
-import GHC.IO.Handle
 
 data AppState =
   AppState
     { fileTree     :: FileTree FilePath
     , eventChannel :: BChan DelveEvent
-    , prompt       :: Maybe (Editor String String, Handle)
+    , prompt       :: Maybe (Editor String String, CmdInputHandler)
     , status       :: String
     }
     deriving Generic
