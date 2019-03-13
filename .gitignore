@@ -23,6 +23,7 @@ cabal.project.local
 .HTF/
 # Stack
 .stack-work/
+*.cabal
 
 ### IDE/support
 # Vim

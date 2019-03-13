@@ -35,11 +35,11 @@ dependencies:
 - unix
 - lens
 - brick-filetree
-- process
 - async
 - streaming
 - generic-lens
 - text
+- unliftio
 
 
 library:
