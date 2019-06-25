@@ -42,6 +42,7 @@ app =
   , appAttrMap      = const attrs
   }
 
+
 attrs :: AttrMap
 attrs =
   attrMap
